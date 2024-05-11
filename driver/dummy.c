@@ -17,12 +17,15 @@ dummy_transmit(struct net_device *dev, uint16_t type, const uint8_t *data, size_
     debugf("dev=%s, type=0x%04x, len=%zu\n", dev->name, type, len);
     debugdump(data, len);
     /* drop date */
+    intr_raise_irq(DUMMY_IRQ);
     return 0;
 }
 
 static int
 dummy_isr(unsigned int irq, void *data)
 {
+    debugf("irq=%u, dev=%s\n", irq, ((struct net_device *)data)->name);
+    return 0;
 }
 
 static struct net_device_ops dummy_ops = {
@@ -48,6 +51,7 @@ struct net_device *
         errorf("net_device_register failed\n");
         return NULL;
     }
+    intr_request_irq(DUMMY_IRQ, dummy_isr, INTR_IRQ_SHARED, dev->name, dev);
     debugf("initialized dummy device: %s\n", dev->name);
     return dev;
 }
